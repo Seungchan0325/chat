@@ -8,14 +8,19 @@ bool is_running = true;
 SOCKET sock;
 
 void Recv() {
+    fd_set fdr;
     char buf[1<<10];
     while(is_running) {
-        memset(buf, 0, sizeof(buf));
-        int ok = recv(sock, buf, sizeof(buf), 0);
-        std::cout<<buf<<std::endl;
-        if(ok == -1) {
-            printf("error\n");
-            return;
+        FD_ZERO(&fdr);
+        FD_SET(sock, &fdr);
+        select(0, &fdr, 0, 0, 0);
+        if(FD_ISSET(sock, &fdr)) {
+            memset(buf, 0, sizeof(buf));
+            int ok = recv(sock, buf, sizeof(buf), 0);
+            std::cout<<buf<<std::endl;
+            if(ok == -1) {
+                return;
+            }
         }
     }
 }
@@ -52,7 +57,6 @@ int main() {
                     is_running = false;
                     break;
                 }
-                printf("debug >>> %s\n", data.c_str());
                 send(sock, data.c_str(), data.size(), 0);
                 data = std::string();
             }

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "network.h"
+#include "room.h"
 #include "exception.h"
 
 #include <cstdio>
@@ -10,12 +11,12 @@
 int port = 8080;
 
 std::shared_ptr<ClientSet> g_client_set;
-//std::shared_ptr<RoomSet> g_room_set;
+std::shared_ptr<RoomSet> g_room_set;
 std::shared_ptr<Network> g_network;
 
 void init() {
     g_client_set = std::make_shared<ClientSet>();
-    //g_room_set = std::make_shared<RoomSet>();
+    g_room_set = std::make_shared<RoomSet>();
     g_network = std::make_shared<Network>();
 
     g_network->initialize(port, g_client_set);
@@ -23,6 +24,10 @@ void init() {
 
 void release() {
     g_network->release();
+}
+
+void command() {
+
 }
 
 int main(int argc, char* argv[]) {
