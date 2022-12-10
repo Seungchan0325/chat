@@ -26,8 +26,22 @@ void release() {
     g_network->release();
 }
 
-void command() {
+std::string GetRoomNames() {
+    std::string ret;
+    for(auto it = g_room_set->begin(); it != g_room_set->end(); it++) {
+        ret += (*it)->room_name + '\n';
+    }
+    return ret;
+}
 
+void command(std::shared_ptr<Client> clnt, std::string cmd) {
+    if(cmd == "room") {
+        g_network->Send(clnt->sock(), GetRoomNames());
+        return;
+    } else if(cmd.substr(0, 9) == "make room") {
+        g_room_set->insert(std::make_shared<Room>(clnt));
+        g_network->Send(clnt->sock(), "");
+    }
 }
 
 int main(int argc, char* argv[]) {
