@@ -1,13 +1,31 @@
 #include <iostream>
+#include <conio.h>
 #include <string>
 #include <WinSock2.h>
+#include <thread>
+
+bool is_running = true;
+SOCKET sock;
+
+void Recv() {
+    char buf[1<<10];
+    while(is_running) {
+        memset(buf, 0, sizeof(buf));
+        int ok = recv(sock, buf, sizeof(buf), 0);
+        std::cout<<buf<<std::endl;
+        if(ok == -1) {
+            printf("error\n");
+            return;
+        }
+    }
+}
 
 int main() {
     int ok = 0;
     WSADATA wsd;
     WSAStartup(MAKEWORD(2, 2), &wsd);
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
 
+    sock = socket(AF_INET, SOCK_STREAM, 0);
     SOCKADDR_IN sa;
     memset(&sa, 0, sizeof(sa));
     sa.sin_family = AF_INET;
@@ -17,29 +35,35 @@ int main() {
     ok = connect(sock, (SOCKADDR*)&sa, sizeof(sa));
     if(ok == -1) printf("error\n");
 
-    char in_buf[1<<10];
-    char out_buf[1<<10];
-    fd_set fdr;
+    std::thread listen_tread(Recv);
+
+    std::string data;
     while(true) {
-        FD_ZERO(&fdr);
-        FD_SET(0, &fdr);    
-        FD_SET(sock, &fdr);
-        select(0, &fdr, 0, 0, 0);
-        
-        if(FD_ISSET(0, &fdr)) {
-            std::cin.getline(out_buf, sizeof(out_buf));
-            int len = strlen(out_buf);
-            if(std::string("quit") == out_buf)
+        if(_kbhit()) {
+            char c = _getche();
+            if(c == 27) {
+                is_running = false;
                 break;
-            if(len >= 1)
-                send(sock, out_buf, len, 0);
-        }
-        if(FD_ISSET(sock, &fdr)) {
-            recv(sock, in_buf, sizeof(in_buf), 0);
-            std::cout<<in_buf<<std::endl;
+            }
+            else if(c == 13) {
+                putc('\n', stdin);
+                if(data == "quit") {
+                    printf("quit\n");
+                    is_running = false;
+                    break;
+                }
+                printf("debug >>> %s\n", data.c_str());
+                send(sock, data.c_str(), data.size(), 0);
+                data = std::string();
+            }
+            else {
+                data.push_back(c);
+            }
         }
     }
+    
 
     closesocket(sock);
+    listen_tread.join();
     WSACleanup();
 }
