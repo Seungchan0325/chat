@@ -126,7 +126,6 @@ SOCKET Network::Accept() {
     return sock;
 }
 
-
 std::string Network::Recv(SOCKET sock) {
     static char buffer[1<<10];
 
@@ -135,7 +134,7 @@ std::string Network::Recv(SOCKET sock) {
     if(sock_ret == SOCKET_ERROR) {
         throw invalid_socket(std::string("recv  failed, code : " + std::to_string(WSAGetLastError())));
     } else if(sock_ret == 0) {
-        return 0;
+        return "";
     }
 
     return buffer;

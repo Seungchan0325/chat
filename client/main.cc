@@ -29,7 +29,8 @@ int main() {
         if(FD_ISSET(0, &fdr)) {
             std::cin.getline(out_buf, sizeof(out_buf));
             int len = strlen(out_buf);
-            out_buf[len] = 0;
+            if(std::string("quit") == out_buf)
+                break;
             if(len >= 1)
                 send(sock, out_buf, len, 0);
         }
